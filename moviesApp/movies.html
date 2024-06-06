@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movies App</title>
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+</head>
+<body>
+<div class="container">
+  <h1 class="text-center">Movies App</h1>
+  <form id="new-movie-form" class="form-inline mb-3">
+    <div class="form-group">
+      <label for="title">Title:</label>
+      <input type="text" id="title" class="form-control mx-2">
+    </div>
+    <div class="form-group">
+      <label for="rating">Rating:</label>
+      <input type="number" id="rating" class="form-control mx-2" min="0" max="10">
+    </div>
+    <button type="submit" class="btn btn-primary">Add Movie</button>
+  </form>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Title <i id="title" class="fas fa-sort-up"></i></th>
+        <th>Rating <i id="rating" class="fas fa-sort-up"></i></th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="movie-table-body"></tbody>
+  </table>
+</div>
+<script>
+  $(document).ready(function() {
+    var movieId = 0;
+    var movies = [];
+
+    $('#new-movie-form').on('submit', function(e) {
+      e.preventDefault();
+      var title = $('#title').val();
+      var rating = $('#rating').val();
+
+      if (title.length < 2 || rating < 0 || rating > 10) {
+        alert('Invalid input: Title must be at least 2 characters and rating between 0 and 10.');
+        return;
+      }
+
+      var newMovie = { title: title, rating: rating, id: movieId++ };
+      movies.push(newMovie);
+      $('#movie-table-body').append(createMovieRow(newMovie));
+      $('#new-movie-form').trigger('reset');
+    });
+
+    $('#movie-table-body').on('click', '.btn-danger', function(e) {
+      var movieId = $(e.target).data('id');
+      $(e.target).closest('tr').remove();
+      var movieIndex = movies.findIndex(function(movie) {
+        return movie.id === movieId;
+      });
+      movies.splice(movieIndex, 1);
+    });
+
+    $('.fas').on('click', function(e) {
+      var sortKey = $(e.target).attr('id');
+      var sortDirection = $(e.target).hasClass('fa-sort-up') ? 'up' : 'down';
+      var sortedMovies = sortMovies(movies, sortKey, sortDirection);
+
+      $('#movie-table-body').empty();
+      sortedMovies.forEach(function(movie) {
+        $('#movie-table-body').append(createMovieRow(movie));
+      });
+
+      $(e.target).toggleClass('fa-sort-up fa-sort-down');
+    });
+
+    function sortMovies(moviesArray, key, direction) {
+      return moviesArray.slice().sort(function(a, b) {
+        if (key === 'rating') {
+          a[key] = +a[key];
+          b[key] = +b[key];
+        }
+        if (a[key] > b[key]) {
+          return direction === 'up' ? 1 : -1;
+        }
+        if (a[key] < b[key]) {
+          return direction === 'up' ? -1 : 1;
+        }
+        return 0;
+      });
+    }
+
+    function createMovieRow(movie) {
+      return `
+        <tr>
+          <td>${movie.title}</td>
+          <td>${movie.rating}</td>
+          <td>
+            <button class="btn btn-danger" data-id="${movie.id}">Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+  });
+</script>
+</body>
+</html>
